@@ -44,7 +44,8 @@
 }
 
 -(void)device:(TCDevice *)device didReceiveIncomingConnection:(TCConnection *)connection {
-    self.connection = connection;    
+    self.connection = connection;   
+    self.connection.delegate = self; 
     [self javascriptCallback:@"onincoming"];
 }
 
@@ -86,8 +87,12 @@
 -(void)deviceSetup:(CDVInvokedUrlCommand*)command {
     self.callback = command.callbackId;
     _nbRepeats = 0;
-    
-    self.device = [[TCDevice alloc] initWithCapabilityToken:command.arguments[0] delegate:self];
+   
+   if(self.device) {
+     [self.device updateCapabilityToken:command.arguments[0]];
+   } else {
+     self.device = [[TCDevice alloc] initWithCapabilityToken:command.arguments[0] delegate:self]; 
+   }
 
     // Disable sounds. was getting EXC_BAD_ACCESS
     //self.device.incomingSoundEnabled   = NO;
