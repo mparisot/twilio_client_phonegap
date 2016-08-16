@@ -34,20 +34,7 @@
                 target-dir="src/com/phonegap/plugins/twilioclient" />
          <source-file src="src/android/com/phonegap/plugins/twilioclient/TCPlugin.java"
                 target-dir="src/com/phonegap/plugins/twilioclient" />
-        <source-file src="sdk/android/libs/armeabi/libtwilio-native.so"
-                target-dir="libs/armeabi" />
-        <source-file src="sdk/android/libs/armeabi-v7a/libtwilio-native.so"
-                target-dir="libs/armeabi-v7a" />
-        <source-file src="sdk/android/libs/mips/libtwilio-native.so"
-                target-dir="libs/mips" />
-        <source-file src="sdk/android/libs/x86/libtwilio-native.so"
-                target-dir="libs/x86" />
-        <source-file src="sdk/android/libs/x86_64/libtwilio-native.so"
-                target-dir="libs/x86_64" />
-        <source-file src="sdk/android/libs/arm64-v8a/libtwilio-native.so"
-                target-dir="libs/arm64-v8a" />
-        <source-file src="sdk/android/libs/twilio-client-android.jar"
-                target-dir="libs" />
+    
         <dependency id="cordova-plugin-compat" version="^1.0.0" />
         <info>
 
