@@ -30,8 +30,9 @@
             </feature>
         </config-file>
 
-	      <framework src="com.twilio:client-android:1.2.17" />
-
+	<framework src="com.twilio:client-android:1.2.17" />
+        <dependency id="cordova-plugin-compat" version="^1.0.0" />
+        
         <source-file src="src/android/com/phonegap/plugins/twilioclient/IncomingConnectionActivity.java"
                 target-dir="src/com/phonegap/plugins/twilioclient" />
          <source-file src="src/android/com/phonegap/plugins/twilioclient/TCPlugin.java"
