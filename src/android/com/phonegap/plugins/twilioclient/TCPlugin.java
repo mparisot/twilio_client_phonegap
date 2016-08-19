@@ -208,7 +208,7 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 	 *
 	 */
 	private void initTwilio(CallbackContext callbackContext) {
-		Log.d(TAG, "initTwilio: "+asPermisssion());
+		Log.d(TAG, "initTwilio: "+hasPermisssion());
         //android permission auto add
         if(!hasPermisssion()) {
             requestPermissions(0);
