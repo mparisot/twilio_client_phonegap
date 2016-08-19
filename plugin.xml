@@ -29,20 +29,15 @@
               <param name="android-package" value="com.phonegap.plugins.twilioclient.TCPlugin"/>
             </feature>
         </config-file>
-    
+
+	      <framework src="com.twilio:client-android:1.2.17" />
+
         <source-file src="src/android/com/phonegap/plugins/twilioclient/IncomingConnectionActivity.java"
                 target-dir="src/com/phonegap/plugins/twilioclient" />
          <source-file src="src/android/com/phonegap/plugins/twilioclient/TCPlugin.java"
                 target-dir="src/com/phonegap/plugins/twilioclient" />
-    
+
         <dependency id="cordova-plugin-compat" version="^1.0.0" />
-        <info>
-
-You need to download __Twilio Client for Android__ from https://www.twilio.com/docs/client/android. Uncompress the download - you will need to follow one step that plugman can not do yet:
-
-* Add the Twilio Client Java library/jar file (in the gradle folder) to your project's libs folder - (platforms/android/libs)
-
-        </info>
     </platform>
 
     <!-- ios -->
