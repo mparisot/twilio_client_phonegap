@@ -105,6 +105,7 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 	@Override
 	public boolean execute(final String action, final JSONArray args,
 			final CallbackContext callbackContext) throws JSONException {
+			Log.d(TAG, "onExecute: "+ action+ "/"+args);
 		if ("deviceSetup".equals(action)) {
             mInitCallbackContext = callbackContext;
             mInitDeviceSetupArgs = args;
@@ -163,52 +164,51 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 		return false;
 	}
 
-	 public boolean hasPermisssion() {
-           Log.d(TAG, "Checking permissions");
-           for(String p : permissions)
-           {
-               if(!PermissionHelper.hasPermission(this, p))
-               {
-                   Log.d(TAG, "No permission");
-                   return false;
-               }
-           }
-           return true;
-       }
-       public void requestPermissions(int requestCode)
-       {
-           PermissionHelper.requestPermissions(this, requestCode, permissions);
-       }
-      public void onRequestPermissionResult(int requestCode, String[] permissions,
-                                             int[] grantResults) throws JSONException
-       {
-           PluginResult result;
-           for (int r : grantResults) {
-               if (r == PackageManager.PERMISSION_DENIED) {
-                   Log.d(TAG, "Permission Denied!");
-                   result = new PluginResult(PluginResult.Status.ILLEGAL_ACCESS_EXCEPTION);
-                   this.mInitCallbackContext.sendPluginResult(result);
-                   return;
-               }
-           }
+	public boolean hasPermisssion() {
+ 		Log.d(TAG, "Checking permissions");
+   	for(String p : permissions) {
+   		if(!PermissionHelper.hasPermission(this, p)) {
+     		Log.d(TAG, "No permission");
+       	return false;
+     	}
+   	}
+   	return true;
+ 	}
 
-           switch(requestCode)
-           {
-               case 0:
-                   initTwilio(this.mInitCallbackContext);
-                   break;
-               case 1:
-                   deviceSetup(this.mInitDeviceSetupArgs, this.mInitCallbackContext);
-                   break;
+	public void requestPermissions(int requestCode)
+ 	{
+ 		PermissionHelper.requestPermissions(this, requestCode, permissions);
+ 	}
 
-           }
-       }
+	public void onRequestPermissionResult(int requestCode, String[] permissions,
+                                        int[] grantResults) throws JSONException
+	{
+   	PluginResult result;
+   	for (int r : grantResults) {
+   		if (r == PackageManager.PERMISSION_DENIED) {
+     		Log.d(TAG, "Permission Denied!");
+       	result = new PluginResult(PluginResult.Status.ILLEGAL_ACCESS_EXCEPTION);
+       	this.mInitCallbackContext.sendPluginResult(result);
+       	return;
+     	}
+ 		}
+   	switch(requestCode)
+   	{
+   		case 0:
+     		initTwilio(this.mInitCallbackContext);
+       	break;
+     	case 1:
+     		deviceSetup(this.mInitDeviceSetupArgs, this.mInitCallbackContext);
+       	break;
+		}
+	}
 
 	/**
 	 * Initialize Twilio's client library - this is only necessary on Android,
 	 *
 	 */
 	private void initTwilio(CallbackContext callbackContext) {
+		Log.d(TAG, "initTwilio: "+asPermisssion());
         //android permission auto add
         if(!hasPermisssion()) {
             requestPermissions(0);
@@ -224,34 +224,33 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 	 */
 	private void deviceSetup(JSONArray arguments,
 			final CallbackContext callbackContext) {
-		if (arguments == null || arguments.length() < 1) {
-			callbackContext.sendPluginResult(new PluginResult(
-					PluginResult.Status.ERROR));
-			return;
-		}
-        if (arguments.optString(0).equals("")) {
-			Log.d("TCPlugin","Releasing device");
+			Log.d(TAG, "deviceSetup: "+arguments.optString(0));
+			if (arguments == null || arguments.length() < 1) {
+				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR));
+				return;
+			}
+      if (arguments.optString(0).equals("")) {
+				Log.d("TCPlugin","Releasing device");
+				cordova.getThreadPool().execute(new Runnable(){
+					public void run() {
+          	if (mDevice != null) {
+		        	mDevice.release();
+            }
+				}});
+				javascriptCallback("onoffline", callbackContext);
+				return;
+			}
+			mDevice = Twilio.createDevice(arguments.optString(0), this);
+
+			Intent intent = new Intent(this.cordova.getActivity(), IncomingConnectionActivity.class);
+			PendingIntent pendingIntent = PendingIntent.getActivity(this.cordova.getActivity(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+			mDevice.setIncomingIntent(pendingIntent);
+
+			LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(cordova.getActivity());
+			lbm.registerReceiver(mBroadcastReceiver, new IntentFilter(IncomingConnectionActivity.ACTION_NAME));
+
+			// delay one second to give Twilio device a change to change status (similar to iOS plugin)
 			cordova.getThreadPool().execute(new Runnable(){
-				public void run() {
-                    if (mDevice != null) {
-				        mDevice.release();
-                    }
-				}
-			});
-			javascriptCallback("onoffline", callbackContext);
-			return;
-		}
-		mDevice = Twilio.createDevice(arguments.optString(0), this);
-
-		Intent intent = new Intent(this.cordova.getActivity(), IncomingConnectionActivity.class);
-		PendingIntent pendingIntent = PendingIntent.getActivity(this.cordova.getActivity(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-		mDevice.setIncomingIntent(pendingIntent);
-
-		LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(cordova.getActivity());
-		lbm.registerReceiver(mBroadcastReceiver, new IntentFilter(IncomingConnectionActivity.ACTION_NAME));
-
-		// delay one second to give Twilio device a change to change status (similar to iOS plugin)
-		cordova.getThreadPool().execute(new Runnable(){
 				public void run() {
 					try {
 						Thread.sleep(1000);
@@ -259,8 +258,7 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 					} catch (InterruptedException ex) {
 						Log.e(TAG,"InterruptedException: " + ex.getMessage(),ex);
 					}
-				}
-			});
+				}});
 	}
 
 	private void deviceStatusEvent(CallbackContext callbackContext) {
@@ -269,6 +267,7 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 					PluginResult.Status.ERROR));
 			return;
 		}
+		Log.d(TAG, "deviceStatusEvent: "+mDevice.getState());
 		switch (mDevice.getState()) {
 		case OFFLINE:
 			javascriptCallback("onoffline", callbackContext);
@@ -320,13 +319,14 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 	}
 
 	private void disconnectAll(JSONArray arguments, CallbackContext callbackContext) {
-        if (mDevice != null) {
-            mDevice.disconnectAll();
-            callbackContext.success();
-        }
+    if (mDevice != null) {
+        mDevice.disconnectAll();
+        callbackContext.success();
+    }
 	}
 
 	private void acceptConnection(JSONArray arguments, CallbackContext callbackContext) {
+		Log.d(TAG, "acceptConnection");
 		mConnection.accept();
 		callbackContext.success();
 	}
