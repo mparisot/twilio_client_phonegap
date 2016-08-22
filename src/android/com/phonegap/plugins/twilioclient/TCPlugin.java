@@ -72,8 +72,11 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			// mDevice = intent.getParcelableExtra(Device.EXTRA_DEVICE);
+			mDevice = intent.getParcelableExtra(Device.EXTRA_DEVICE);
 			mConnection = intent.getParcelableExtra(Device.EXTRA_CONNECTION);
+
+			Log.d(TAG, "received call with: "+ mConnection + " - " + mDevice);
+
 			mConnection.setConnectionListener(plugin);
 			Log.d(TAG, "incoming intent received with connection: "+ mConnection.getState().name());
 			String constate = mConnection.getState().name();
@@ -229,6 +232,7 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR));
 				return;
 			}
+			LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(cordova.getActivity());
       if (arguments.optString(0).equals("")) {
 				Log.d("TCPlugin","Releasing device");
 				cordova.getThreadPool().execute(new Runnable(){
@@ -237,6 +241,10 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 		        	mDevice.release();
             }
 				}});
+				if(mBroadcastReceiver != null) {
+					lbm.unregisterReceiver(mBroadcastReceiver);
+				}
+
 				javascriptCallback("onoffline", callbackContext);
 				return;
 			}
@@ -246,7 +254,6 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 			PendingIntent pendingIntent = PendingIntent.getActivity(this.cordova.getActivity(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 			mDevice.setIncomingIntent(pendingIntent);
 
-			LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(cordova.getActivity());
 			lbm.registerReceiver(mBroadcastReceiver, new IntentFilter(IncomingConnectionActivity.ACTION_NAME));
 
 			// delay one second to give Twilio device a change to change status (similar to iOS plugin)
