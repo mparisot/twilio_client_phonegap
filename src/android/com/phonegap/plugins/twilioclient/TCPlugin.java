@@ -233,6 +233,9 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 				return;
 			}
 			LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(cordova.getActivity());
+      if(mBroadcastReceiver != null) {
+        lbm.unregisterReceiver(mBroadcastReceiver);
+      }
       if (arguments.optString(0).equals("")) {
 				Log.d("TCPlugin","Releasing device");
 				cordova.getThreadPool().execute(new Runnable(){
@@ -241,9 +244,6 @@ public class TCPlugin extends CordovaPlugin implements DeviceListener,
 		        	mDevice.release();
             }
 				}});
-				if(mBroadcastReceiver != null) {
-					lbm.unregisterReceiver(mBroadcastReceiver);
-				}
 
 				javascriptCallback("onoffline", callbackContext);
 				return;

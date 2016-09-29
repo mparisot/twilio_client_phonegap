@@ -44,9 +44,19 @@
 }
 
 -(void)device:(TCDevice *)device didReceiveIncomingConnection:(TCConnection *)connection {
-    self.connection = connection;   
-    self.connection.delegate = self; 
+    self.connection = connection;
+    self.connection.delegate = self;
     [self javascriptCallback:@"onincoming"];
+
+    UILocalNotification *notification = [[UILocalNotification alloc] init];
+    notification.alertBody = @"Incoming Call";
+    notification.fireDate = [NSDate date];
+    NSArray *oldNotifications = [[UIApplication sharedApplication] scheduledLocalNotifications];
+    if ([oldNotifications count] > 0) {
+      [[UIApplication sharedApplication] cancelAllLocalNotifications];
+    }
+
+    [[UIApplication sharedApplication] scheduleLocalNotification:notification];
 }
 
 -(void)device:(TCDevice *)device didReceivePresenceUpdate:(TCPresenceEvent *)presenceEvent {
@@ -87,11 +97,11 @@
 -(void)deviceSetup:(CDVInvokedUrlCommand*)command {
     self.callback = command.callbackId;
     _nbRepeats = 0;
-   
+
    if(self.device) {
      [self.device updateCapabilityToken:command.arguments[0]];
    } else {
-     self.device = [[TCDevice alloc] initWithCapabilityToken:command.arguments[0] delegate:self]; 
+     self.device = [[TCDevice alloc] initWithCapabilityToken:command.arguments[0] delegate:self];
    }
 
     // Disable sounds. was getting EXC_BAD_ACCESS
@@ -103,39 +113,39 @@
 }
 
 -(void)deviceStatusEvent {
-    
+
     NSLog(@"Device state: %ld",(long) self.device.state);
-    
+
     switch ([self.device state]) {
-            
+
         case TCDeviceStateReady:
             [self javascriptCallback:@"onready"];
             NSLog(@"State: Ready");
-            
+
             [_timer invalidate];
             _timer = nil;
-            
+
             break;
-            
+
         case TCDeviceStateOffline:
             [self javascriptCallback:@"onoffline"];
             NSLog(@"State: Offline");
-            
+
             if ((long)_nbRepeats>20){
-                
+
                 [_timer invalidate];
                 _timer = nil;
                 _nbRepeats = 0;
             }
             else _nbRepeats++;
-            
+
             break;
-            
+
         default:
-            
+
             [_timer invalidate];
             _timer = nil;
-            
+
             break;
     }
 }
@@ -150,27 +160,27 @@
 
 -(void)deviceStatus:(CDVInvokedUrlCommand*)command {
     NSString *state;
-    
+
     NSLog(@"Device state: %ld",(long) self.device.state);
-    
+
     switch ([self.device state]) {
         case TCDeviceStateBusy:
             state = @"busy";
             break;
-            
+
         case TCDeviceStateReady:
             state = @"ready";
             break;
-            
+
         case TCDeviceStateOffline:
             state = @"offline";
             break;
-            
+
         default:
-            break;        
+            break;
     }
-    
-    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:state];    
+
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:state];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
@@ -203,28 +213,28 @@
 
 -(void)connectionStatus:(CDVInvokedUrlCommand*)command {
     NSString *state;
-    
+
     switch ([self.connection state]) {
         case TCConnectionStateConnected:
             state = @"open";
             break;
-            
+
         case TCConnectionStateConnecting:
             state = @"connecting";
             break;
-            
+
         case TCConnectionStatePending:
             state = @"pending";
             break;
-            
+
         case TCConnectionStateDisconnected:
             state = @"closed";
-        
+
         default:
-            break;        
+            break;
     }
-        
-    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:state];    
+
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:state];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
@@ -241,9 +251,9 @@
     @catch(NSException *exception) {
         NSLog(@"Couldn't Cancel Notification");
     }
-    
+
     NSString *alertBody = [command.arguments objectAtIndex:0];
-    
+
     NSString *ringSound = @"incoming.wav";
     if([command.arguments count] == 2) {
         ringSound = [command.arguments objectAtIndex:1];
@@ -288,7 +298,7 @@
     NSDictionary *options   = [NSDictionary dictionaryWithObjectsAndKeys:event, @"callback", arguments, @"arguments", nil];
     CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:options];
     result.keepCallback     = [NSNumber numberWithBool:YES];
-    
+
     [self.commandDelegate sendPluginResult:result callbackId:self.callback];
 }
 
@@ -300,7 +310,7 @@
     NSDictionary *object    = [NSDictionary dictionaryWithObjectsAndKeys:[error localizedDescription], @"message", nil];
     CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:object];
     result.keepCallback     = [NSNumber numberWithBool:YES];
-    
+
     [self.commandDelegate sendPluginResult:result callbackId:self.callback];
 }
 
