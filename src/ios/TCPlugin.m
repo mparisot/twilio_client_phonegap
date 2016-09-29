@@ -48,7 +48,7 @@
     self.connection.delegate = self;
     [self javascriptCallback:@"onincoming"];
 
-    UILocalNotification *notification = [[UILocalNotification alloc] init];
+    /*UILocalNotification *notification = [[UILocalNotification alloc] init];
     notification.alertBody = @"Incoming Call";
     notification.fireDate = [NSDate date];
     NSArray *oldNotifications = [[UIApplication sharedApplication] scheduledLocalNotifications];
@@ -56,7 +56,7 @@
       [[UIApplication sharedApplication] cancelAllLocalNotifications];
     }
 
-    [[UIApplication sharedApplication] scheduleLocalNotification:notification];
+    [[UIApplication sharedApplication] scheduleLocalNotification:notification];*/
 }
 
 -(void)device:(TCDevice *)device didReceivePresenceUpdate:(TCPresenceEvent *)presenceEvent {
